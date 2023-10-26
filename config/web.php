@@ -14,7 +14,7 @@ $config = [
 
     'modules' => [
         'admin' => [
-//            'layout' => 'main',
+            'layout' => 'main',
             'class' => 'app\modules\admin\Module',
             'defaultRoute' => 'auth/login'
         ],

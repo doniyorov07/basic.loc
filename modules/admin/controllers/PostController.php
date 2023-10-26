@@ -4,10 +4,13 @@ namespace app\modules\admin\controllers;
 
 use app\models\Category;
 use app\models\Post;
+use app\models\PostCategory;
+use app\models\PostTag;
 use app\models\search\Post as PostSearch;
 use app\models\Tag;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
+use yii\helpers\ArrayHelper;
 use yii\web\NotFoundHttpException;
 use Yii;
 
@@ -25,7 +28,7 @@ class PostController extends DefaultController
                 'except' => ['error'],
                 'rules' => [
                     [
-                        'actions' => ['login', 'error', 'create', 'index', 'update', 'delete', 'change'],
+                        'actions' => ['login', 'error', 'create', 'index', 'update', 'delete', 'change','view'],
                         'allow' => true,
                         'roles' => ['admin'],
                     ],
@@ -131,15 +134,17 @@ class PostController extends DefaultController
         if (!$model) {
             throw new NotFoundHttpException('The requested page does not exist.');
         }
+        $model->tag_id = ArrayHelper::getColumn($model->tags, 'id');
+        $model->category_id = ArrayHelper::getColumn($model->categories, 'id');
 
         if ($this->request->isPost) {
             if ($model->load($this->request->post()) && $model->save()) {
 
 
-                $tagIds = \Yii::$app->request->post('Post')['tag_id'];
+                $tagIds = Yii::$app->request->post('Post')['tag_id'];
                 $tagIds = is_array($tagIds) ? $tagIds : [];
 
-
+                PostTag::deleteAll(['post_id' => $model->id]);
                 foreach ($tagIds as $tagId) {
                     $tag = Tag::findOne($tagId);
                     if (!$tag) {
@@ -153,7 +158,7 @@ class PostController extends DefaultController
                 $catIds = \Yii::$app->request->post('Post')['category_id'];
                 $catIds = is_array($catIds) ? $catIds : [];
 
-
+                PostCategory::deleteAll(['post_id' => $model->id]);
                 foreach ($catIds as $catId) {
                     $cat = Category::findOne($catId);
                     if (!$cat) {
